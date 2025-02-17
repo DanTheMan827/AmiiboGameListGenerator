@@ -23,10 +23,8 @@ public class Program
     /// The instance of the AmiiboDataBase.
     /// </value>
     public static DBRootobjectInstance BRootobject => lazy.Value;
-
-    private static readonly HttpClient client = new();
     private static string inputPath;
-    private static string outputPath = @".\games_info.json";
+    private static string outputPath = @"games_info.json";
     private static readonly Dictionary<Hex, Games> export = new();
 
     /// <summary>
@@ -51,7 +49,10 @@ public class Program
                 Debugger.Log("Downloading amiibo database", Debugger.DebugLevel.Verbose);
                 try
                 {
-                    amiiboJSON = client.GetStringAsync("https://raw.githubusercontent.com/N3evin/AmiiboAPI/master/database/amiibo.json").Result;
+                    using (var client = new HttpClient())
+                    {
+                        amiiboJSON = client.GetStringAsync("https://raw.githubusercontent.com/N3evin/AmiiboAPI/master/database/amiibo.json").Result;
+                    }
                 }
                 catch (Exception e)
                 {
@@ -99,7 +100,10 @@ public class Program
             try
             {
                 Debugger.Log("Downloading 3DS database", Debugger.DebugLevel.Verbose);
-                DSDatabase = client.GetByteArrayAsync("http://3dsdb.com/xml.php").Result;
+                using (var client = new HttpClient())
+                {
+                    DSDatabase = client.GetByteArrayAsync("http://3dsdb.com/xml.php").Result;
+                }
             }
             catch (Exception ex)
             {
@@ -127,7 +131,10 @@ public class Program
             Debugger.Log("Downloading Switch database", Debugger.DebugLevel.Verbose);
             try
             {
-                BlawarDatabase = client.GetStringAsync("https://raw.githubusercontent.com/blawar/titledb/master/US.en.json").Result;
+                using (var client = new HttpClient())
+                {
+                    BlawarDatabase = client.GetStringAsync("https://raw.githubusercontent.com/blawar/titledb/master/US.en.json").Result;
+                }
             }
             catch (Exception ex)
             {
@@ -149,7 +156,6 @@ public class Program
             Environment.Exit((int)Debugger.ReturnType.DatabaseLoadingError);
         }
 
-        client.Dispose();
         Debugger.Log("Done loading!");
 
         // List to keep track of missing games
@@ -179,7 +185,10 @@ public class Program
                 Environment.Exit((int)Debugger.ReturnType.UnknownError);
             }
 
-            export.Add(DBamiibo.Key, exportAmiibo);
+            lock (export)
+            {
+                export.Add(DBamiibo.Key, exportAmiibo);
+            }
 
             // Show which amiibo just got added
             AmiiboCounter++;
@@ -223,11 +232,31 @@ public class Program
         Games ExAmiibo = new();
 
         HtmlDocument htmlDoc = new();
-        htmlDoc.LoadHtml(
-            WebUtility.HtmlDecode(
-                client.GetStringAsync(DBamiibo.URL).Result
-                )
-            );
+
+        // Attempt to load the html up to 5 times
+        for (int i = 0; i < 5; i++)
+        {
+            try
+            {
+                using (var client = new HttpClient())
+                {
+                    htmlDoc.LoadHtml(
+                        WebUtility.HtmlDecode(
+                            client.GetStringAsync(DBamiibo.URL).Result
+                        )
+                    );
+                }
+                break;
+            }
+            catch (Exception ex)
+            {
+                Debugger.Log($"({i + 1}/5) Error while loading {DBamiibo.Name} ({DBamiibo.OriginalName})\n{ex.Message}\n{DBamiibo.URL}", Debugger.DebugLevel.Error);
+                if (i == 4)
+                {
+                    throw;
+                }
+            }
+        }
 
         // Get the games panel
         HtmlNodeCollection GamesPanel = htmlDoc.DocumentNode.SelectNodes("//*[@class='games panel']/a");
@@ -278,8 +307,10 @@ public class Program
                             {
                                 "Cyber Shadow" => new() { "0100C1F0141AA000" },
                                 "Jikkyou Powerful Pro Baseball" => new() { "0100E9C00BF28000" },
-                                "Super Kirby Clash" => new() { "01003FB00C5A8000" },
+                                "Shovel Knight Pocket Dungeon" => new() { "01006B00126EC000" },
                                 "Shovel Knight Showdown" => new() { "0100B380022AE000" },
+                                "Super Kirby Clash" => new() { "01003FB00C5A8000" },
+                                "The Legend of Zelda: Echoes of Wisdom" => new() { "01008CF01BAAC000" },
                                 "The Legend of Zelda: Skyward Sword HD" => new() { "01002DA013484000" },
                                 "Yu-Gi-Oh! Rush Duel Saikyo Battle Royale" => new() { "01003C101454A000" },
                                 _ => throw new Exception()
