@@ -167,7 +167,7 @@ public class Program
 
         Debugger.Log("Processing amiibo");
         // Iterate over all amiibo and get game info
-        _ = Parallel.ForEach(BRootobject.rootobject.amiibos, (DBamiibo) =>
+        foreach (var DBamiibo in BRootobject.rootobject.amiibos)
         {
             Games exportAmiibo = default;
             try
@@ -190,7 +190,7 @@ public class Program
             // Show which amiibo just got added
             AmiiboCounter++;
             Debugger.Log($"{AmiiboCounter:D3}/{TotalAmiibo} Done with {DBamiibo.Value.OriginalName} ({DBamiibo.Value.amiiboSeries})", Debugger.DebugLevel.Verbose);
-        });
+        }
 
         // Sort export object
         Hex[] KeyArray = export.Keys.ToArray();
