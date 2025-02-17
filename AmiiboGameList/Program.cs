@@ -220,7 +220,7 @@ public class Program
         }
         else
         {
-            return (int)Debugger.ReturnType.Success;
+            return 0;
         }
     }
 
