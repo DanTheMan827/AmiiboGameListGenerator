@@ -1,15 +1,12 @@
-name: .NET
+name: Get Game Info
 
 on:
+  workflow_call:
   workflow_dispatch:
-  push:
-    branches: [ '*' ]
-
-  pull_request:
-    branches: [ '*' ]
 
 jobs:
-  build:
+  games_info:
+    name: Get Game Info
 
     runs-on: ubuntu-latest
     defaults:
@@ -30,8 +27,12 @@ jobs:
     - name: Build
       run: dotnet build --no-restore
 
+    - name: Run
+      working-directory: ./AmiiboGameList/bin/Debug/net8.0
+      run: dotnet AmiiboGameList.dll
+
     - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
-        name: AmiiboGameList
-        path: ./AmiiboGameList/bin/Debug/net8.0/
+        name: games_info
+        path: ./AmiiboGameList/bin/Debug/net8.0/games_info.json
