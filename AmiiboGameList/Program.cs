@@ -185,10 +185,7 @@ public class Program
                 Environment.Exit((int)Debugger.ReturnType.UnknownError);
             }
 
-            lock (export)
-            {
-                export.Add(DBamiibo.Key, exportAmiibo);
-            }
+            export.Add(DBamiibo.Key, exportAmiibo);
 
             // Show which amiibo just got added
             AmiiboCounter++;
