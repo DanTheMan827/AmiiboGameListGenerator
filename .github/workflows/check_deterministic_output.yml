@@ -47,7 +47,7 @@ jobs:
     - uses: actions/checkout@v4
 
     - name: Fetch the data
-      uses: ./.github/actions/build-and-run
+      uses: .github/actions/build-and-run
       with:
         arguments: -log 0 -o ./games_info.json
 
