@@ -62,7 +62,7 @@ jobs:
     - uses: actions/checkout@v4
 
     - name: Build and run
-      uses: ${{ github.repository }}/.github/actions/build-and-run@${{ github.ref }}
+      uses: .github/actions/build-and-run
       with:
         arguments: -log "${{ inputs.log }}" -p "${{ inputs.parallelism }}" -o "./${{ inputs.filename}}"
 
