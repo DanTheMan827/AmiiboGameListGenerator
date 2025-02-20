@@ -12,7 +12,7 @@ runs:
   using: "composite"
   steps:
     - name: Build
-      uses: ./.github/actions/build
+      uses: ${{ github.repository }}/.github/actions/build@${{ github.ref }}
       id: build
 
     - name: Run
