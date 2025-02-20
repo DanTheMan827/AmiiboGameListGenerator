@@ -12,7 +12,7 @@ runs:
   using: "composite"
   steps:
     - name: Build
-      uses: ./.github/actions/build
+      uses: .github/actions/build
       id: build
 
     - name: Run
